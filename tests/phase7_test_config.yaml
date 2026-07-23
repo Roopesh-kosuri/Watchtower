@@ -1,0 +1,35 @@
+storage:
+  path: ./tests/data/phase7_test.db
+
+notifications: {}
+
+detector:
+  run_interval_seconds: 9999
+
+services:
+  - name: payments-api
+    type: http
+    enabled: true
+    check:
+      url: "https://pypi.org/"
+      method: GET
+      interval_seconds: 9999
+      timeout_seconds: 5
+      expected_status: [200]
+
+  - name: payments-api-logs
+    type: log
+    enabled: true
+    log:
+      source: push
+      parser: json_lines
+
+  - name: checkout-api
+    type: http
+    enabled: true
+    check:
+      url: "https://pypi.org/"
+      method: GET
+      interval_seconds: 9999
+      timeout_seconds: 5
+      expected_status: [200]

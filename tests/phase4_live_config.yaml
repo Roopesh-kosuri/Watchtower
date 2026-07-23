@@ -1,0 +1,27 @@
+storage:
+  path: ./tests/data/phase4_live_test.db
+
+notifications:
+  local_receiver:
+    kind: webhook
+    url: "http://127.0.0.1:8767/webhook"
+    format: discord
+
+detector:
+  run_interval_seconds: 5
+  ema_alpha: 0.2
+  cold_start_min_samples: 5
+  latency_stddev_threshold: 3.0
+  error_rate_stddev_threshold: 3.0
+
+services:
+  - name: local-flaky-endpoint
+    type: http
+    enabled: true
+    check:
+      url: "http://127.0.0.1:8765/"
+      method: GET
+      interval_seconds: 2
+      timeout_seconds: 3
+      expected_status: [200]
+    notify: [local_receiver]

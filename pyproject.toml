@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Only test_*.py -- deliberately excludes the pre-existing *_test.py
+# standalone phase scripts (phase3_detector_test.py etc.), which are not
+# written as pytest tests and would otherwise show up as noisy
+# zero-tests-collected entries. See CONTRIBUTING.md for why those remain
+# standalone for now instead of being converted.
+python_files = ["test_*.py"]
+asyncio_mode = "auto"

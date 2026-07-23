@@ -1,0 +1,57 @@
+storage:
+  path: ./tests/data/phase5_test.db
+
+notifications:
+  local_receiver:
+    kind: webhook
+    url: "http://127.0.0.1:8768/webhook"
+    format: discord
+
+detector:
+  run_interval_seconds: 4
+  ema_alpha: 0.2
+  cold_start_min_samples: 5
+  latency_stddev_threshold: 3.0
+  error_rate_stddev_threshold: 3.0
+
+services:
+  - name: healthy-svc
+    type: http
+    enabled: true
+    check:
+      url: "https://pypi.org/"
+      method: GET
+      interval_seconds: 3
+      timeout_seconds: 5
+      expected_status: [200]
+    notify: [local_receiver]
+
+  - name: flaky-svc
+    type: http
+    enabled: true
+    check:
+      url: "http://127.0.0.1:8765/"
+      method: GET
+      interval_seconds: 2
+      timeout_seconds: 3
+      expected_status: [200]
+    notify: [local_receiver]
+
+  - name: empty-svc
+    type: http
+    enabled: true
+    check:
+      url: "https://github.com/"
+      method: GET
+      interval_seconds: 9999
+      timeout_seconds: 5
+      expected_status: [200]
+    notify: []
+
+  - name: app-logs
+    type: log
+    enabled: true
+    log:
+      source: push
+      parser: json_lines
+    notify: [local_receiver]

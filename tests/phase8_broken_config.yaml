@@ -1,0 +1,38 @@
+storage:
+  path: ./tests/data/broken.db
+
+notifications:
+  discord_ops:
+    kind: webhook
+    url: "https://discord.com/api/webhooks/REPLACE_ME"
+
+auth:
+  enabled: true
+  # no password or password_env given -- should be flagged
+
+services:
+  - name: no-check-block
+    type: http
+    enabled: true
+
+  - name: no-check-block
+    type: http
+    enabled: true
+    check:
+      url: "not-a-valid-url"
+      interval_seconds: 10
+      timeout_seconds: 5
+
+  - name: bad-log-service
+    type: log
+    log:
+      source: file
+      parser: plaintext_regex
+
+  - name: unknown-channel-service
+    type: http
+    check:
+      url: "https://example.com"
+      interval_seconds: 10
+      timeout_seconds: 5
+    notify: [nonexistent_channel]

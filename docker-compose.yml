@@ -1,0 +1,41 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      # Bind mounts, not a named volume -- deliberately, so config.yaml
+      # stays editable and the SQLite file stays directly poke-at-able
+      # from the host (sqlite3 data/watchtower.db) without needing to
+      # dig into Docker-managed volume storage.
+      - ./config:/app/config:ro
+      - ./data:/app/data
+      # If you use `type: log, source: file` services, mount whatever
+      # host log directory they read from here too, e.g.:
+      # - /var/log/myapp:/var/log/myapp:ro
+    ports:
+      # Exposed directly for local debugging (curl/Postman against the
+      # backend without going through the frontend proxy). For a real
+      # internet-facing deployment, remove this port mapping so the
+      # backend is only reachable from the frontend container over the
+      # internal Docker network -- and enable auth (see README).
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

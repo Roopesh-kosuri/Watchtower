@@ -1,0 +1,34 @@
+storage:
+  path: ./tests/data/phase8_test.db
+
+notifications: {}
+
+detector:
+  run_interval_seconds: 30
+  cold_start_min_samples: 5
+
+auth:
+  enabled: true
+  username: watchtower
+  password: correct-horse-battery-staple
+
+services:
+  - name: unreachable-from-boot
+    type: http
+    enabled: true
+    check:
+      url: "http://127.0.0.1:1/"
+      method: GET
+      interval_seconds: 3
+      timeout_seconds: 2
+      expected_status: [200]
+
+  - name: reachable-service
+    type: http
+    enabled: true
+    check:
+      url: "https://pypi.org/"
+      method: GET
+      interval_seconds: 3
+      timeout_seconds: 5
+      expected_status: [200]

@@ -1,0 +1,24 @@
+storage:
+  path: ./tests/data/pytest_api_test.db
+
+notifications: {}
+
+detector:
+  run_interval_seconds: 9999
+
+services:
+  - name: api-test-svc
+    type: http
+    enabled: true
+    check:
+      url: "http://127.0.0.1:1/"
+      interval_seconds: 9999
+      timeout_seconds: 2
+      expected_status: [200]
+
+  - name: api-test-logs
+    type: log
+    enabled: true
+    log:
+      source: push
+      parser: json_lines

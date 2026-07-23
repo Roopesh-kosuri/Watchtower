@@ -1,0 +1,42 @@
+storage:
+  path: ./tests/data/phase2_test.db
+
+notifications: {}
+
+detector:
+  run_interval_seconds: 30
+
+services:
+  - name: pypi-org
+    type: http
+    enabled: true
+    check:
+      url: "https://pypi.org/"
+      method: GET
+      interval_seconds: 30
+      timeout_seconds: 5
+      expected_status: [200]
+
+  - name: plaintext-app-logs
+    type: log
+    enabled: true
+    log:
+      source: file
+      path: ./tests/data/phase2_logs/plaintext.log
+      parser: plaintext_regex
+      pattern: '^(?P<timestamp>\S+ \S+) \[(?P<level>\w+)\] (?P<message>.*)$'
+
+  - name: json-app-logs
+    type: log
+    enabled: true
+    log:
+      source: file
+      path: ./tests/data/phase2_logs/json.log
+      parser: json_lines
+
+  - name: pushed-service-logs
+    type: log
+    enabled: true
+    log:
+      source: push
+      parser: json_lines

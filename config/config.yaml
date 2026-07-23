@@ -1,0 +1,79 @@
+# Watchtower sample configuration
+
+storage:
+  path: ./data/watchtower.db
+
+# HTTP Basic auth for the dashboard API. OFF by default so a first local
+# run isn't blocked at the door -- but Watchtower logs a loud startup
+# warning while this stays off, since the tool is meant to be
+# internet-facing eventually. /health is always left unauthenticated
+# (standard practice for load balancer / uptime checks).
+auth:
+  enabled: false
+  username: admin
+  password: change-me           # OR use password_env below instead
+  # password_env: WATCHTOWER_PASSWORD   # keeps the secret out of this file
+
+# Named notification channels, referenced by name from services below.
+notifications:
+  discord_ops:
+    kind: webhook
+    url: "https://discord.com/api/webhooks/REPLACE_ME"
+    format: discord
+
+  generic_webhook:
+    kind: webhook
+    url: "https://example.com/hooks/watchtower"
+    format: generic
+
+# Global detector defaults; any of these can be overridden per-service
+# under that service's own `detector:` block.
+detector:
+  run_interval_seconds: 30
+  ema_alpha: 0.2                # smoothing factor for EMA baseline
+  cold_start_min_samples: 20    # no anomaly scoring before this many samples exist
+  latency_stddev_threshold: 3.0
+  error_rate_stddev_threshold: 3.0
+
+services:
+  - name: public-api
+    type: http
+    enabled: true
+    check:
+      url: "https://api.example.com/health"
+      method: GET
+      interval_seconds: 15
+      timeout_seconds: 5
+      expected_status: [200]
+    notify: [discord_ops]
+
+  - name: marketing-site
+    type: http
+    enabled: true
+    check:
+      url: "https://www.example.com"
+      method: GET
+      interval_seconds: 60
+      timeout_seconds: 10
+      expected_status: [200, 301, 302]
+    notify: [discord_ops, generic_webhook]
+
+  - name: worker-service-logs
+    type: log
+    enabled: true
+    log:
+      source: file               # 'file' or 'push'
+      path: /var/log/worker/service.log
+      parser: plaintext_regex
+      pattern: '^(?P<timestamp>\S+ \S+) \[(?P<level>\w+)\] (?P<message>.*)$'
+    notify: [discord_ops]
+
+  - name: payments-service-logs
+    type: log
+    enabled: true
+    log:
+      source: push               # ingested via POST /ingest/logs instead of tailed
+      parser: json_lines
+    detector:
+      cold_start_min_samples: 50 # override: this service is noisier, wait longer
+    notify: [generic_webhook]

@@ -1,0 +1,38 @@
+storage:
+  path: ./data/phase1_test.db
+
+notifications: {}
+
+detector:
+  run_interval_seconds: 30
+
+services:
+  - name: pypi-org
+    type: http
+    enabled: true
+    check:
+      url: "https://pypi.org/"
+      method: GET
+      interval_seconds: 8
+      timeout_seconds: 5
+      expected_status: [200]
+
+  - name: github-com
+    type: http
+    enabled: true
+    check:
+      url: "https://github.com/"
+      method: GET
+      interval_seconds: 8
+      timeout_seconds: 5
+      expected_status: [200]
+
+  - name: local-flaky-endpoint
+    type: http
+    enabled: true
+    check:
+      url: "http://127.0.0.1:8765/"
+      method: GET
+      interval_seconds: 5
+      timeout_seconds: 3
+      expected_status: [200]
